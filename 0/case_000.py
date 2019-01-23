@@ -8,7 +8,7 @@
 官方文档：https://pillow.readthedocs.io/en/stable/
 参考链接: https://liam.page/2015/04/22/pil-tutorial-basic-usage/
 """
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 
 def insert_num(img_path, num):
