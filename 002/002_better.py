@@ -3,21 +3,23 @@
 # @Date    : 2019/2/28 下午2:53
 # @IDE     : PyCharm
 
-import MySQLdb
-import string
 import random
+import string
+
+# 参考他人的代码将创建mysql类以及将操作的方法封装，规范代码
+import pymysql
 
 KEY_LEN = 20
 KEY_ALL = 200
 
 
 def base_str():
-    return string.letters + string.digits
+    return string.ascii_letters + string.digits
 
 
 def key_gen():
-    keylist = [random.choice(base_str()) for i in range(KEY_LEN)]
-    return "".join(keylist)
+    key_list = [random.choice(base_str()) for i in range(KEY_LEN)]
+    return "".join(key_list)
 
 
 def key_num(num, result=None):
@@ -35,19 +37,19 @@ class InitMysql(object):
 
     # connect to mysql
     def connect(self):
-        self.conn = MySQLdb.connect(
-            host="localhost",
-            port=3306,
-            user="root",
-            passwd="123456",
-            db="test",
-            charset="utf8"
+        self.conn = pymysql.connect(
+            host='localhost',
+            port=32768,
+            user='root',
+            passwd='Geotmt_123',
+            db='test',
+            cursorclass=pymysql.cursors.DictCursor
         )
 
     def cursor(self):
         try:
             return self.conn.cursor()
-        except (AttributeError, MySQLdb.OperationalError):
+        except (AttributeError, pymysql.OperationalError):
             self.connect()
             return self.conn.cursor()
 
@@ -59,54 +61,39 @@ class InitMysql(object):
 
 
 def process():
-    dbconn.connect()
-    conn = dbconn.cursor()
-    DropTable(conn)
-    CreateTable(conn)
-    InsertDatas(conn)
-    QueryData(conn)
-    dbconn.close()
-
-# def execute(sql):
-#     '''执行sql'''
-#     conn=dbconn.cursor()
-#     conn.execute(sql)
-
-# def executemany(sql, tmp):
-#     '''插入多条数据'''
-#     conn=dbconn.cursor()
-#     conn.executemany(sql,tmp)
+    dbConn.connect()
+    conn = dbConn.cursor()
+    drop_table(conn)
+    create_table(conn)
+    insert_data(conn)
+    # query_data(conn)
+    dbConn.commit()
+    dbConn.close()
 
 
 def query(sql, conn):
-    '''查询sql'''
-    # conn=dbconn.cursor()
+    """查询sql"""
     conn.execute(sql)
     rows = conn.fetchall()
     return rows
 
 
-def DropTable(conn):
-    # conn=dbconn.cursor()
+def drop_table(conn):
     conn.execute("DROP TABLE IF EXISTS `user_key`")
 
 
 def create_table(conn):
-    # conn=dbconn.cursor()
-    sql_create = ''' CREATE TABLE `user_key` (`key` varchar(50) NOT NULL)'''
+    sql_create = "CREATE TABLE `user_key` \
+        (`id` int(11) NOT NULL AUTO_INCREMENT,`code` varchar(255) DEFAULT NULL,PRIMARY KEY (`id`)) \
+        ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;"
     conn.execute(sql_create)
 
 
-def insert_datas(conn):
-    # conn=dbconn.cursor()
-    # insert_sql = "insert into user_key values(%s)"
-    insert_sql = "INSERT INTO user_key VALUES (%(value)s)"
+def insert_data(conn):
+    insert_sql = "INSERT INTO `user_key`(code) VALUES (%s)"
     key_list = key_num(KEY_ALL)
-    # print len(key_list)
-    # conn.executemany(insert_sql,str(key_listi))
-    # conn.executemany("INSERT INTO user_key VALUES (%(value)s)",
-    #                   [dict(value=v) for v in key_list])
-    conn.executemany(insert_sql, [dict(value=v) for v in key_list])
+    # print(len(key_list))
+    conn.executemany(insert_sql, key_list)
 
 
 def delete_data(conn):
@@ -115,7 +102,7 @@ def delete_data(conn):
 
 
 def query_data(conn):
-    sql = "select * from user_key"
+    sql = "select `id`,`code` from `user_key` order by `id`"
     rows = query(sql, conn)
     print_result(rows)
 
@@ -128,5 +115,5 @@ def print_result(rows):
 
 
 if __name__ == "__main__":
-    dbconn = InitMysql(None)
+    dbConn = InitMysql(None)
     process()
