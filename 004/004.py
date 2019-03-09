@@ -4,17 +4,19 @@
 # @IDE     : PyCharm
 import re
 from collections import Counter
+from functools import reduce
 
 
-def creat_list(filename):
-    datalist = []
+def create_list(filename):
+    word_list = list()
     with open(filename, 'r') as f:
-        for line in f:
-            content = re.sub("\"|,|\.", "", line)
-            print(content)
-            datalist.extend(content.strip().split(' '))
-    return datalist
+        # 利用正则表达式，‘\b’匹配一个单词边界，即字与空格间的位置,‘+’等价于匹配长度{1,}
+        content = re.findall("\b?([A-Za-z]+)\b?", f.read())
+        print(content)
+        word_list.extend(content)
+    return word_list
 
 
 if __name__ == '__main__':
-    print(Counter(creat_list('test.txt')))
+    words = Counter(create_list('test.txt'))
+    print(reduce(lambda x, y: x + y, words.values()))
